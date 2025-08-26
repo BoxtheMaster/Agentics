@@ -21,7 +21,7 @@ Agentics is a Python framework that provides structured, scalable, and semantica
     - Mustafa Eyceoz, RedHat
 
 We welcome new AG entusiasts to extend this framework with new applications and extension to the language. 
-
+ 
 
 
 
