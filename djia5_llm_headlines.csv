@@ -1,0 +1,6 @@
+ticker,sector,headlines_confidence,llm_headlines_json
+AAPL,Information Technology,0.5,[]
+UNH,Health Care,0.5,[]
+JPM,Financials,0.5,[]
+CAT,Industrials,0.5,[]
+PG,Consumer Staples,0.5,[]

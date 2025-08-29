@@ -1,0 +1,6 @@
+ticker,sector,action,confidence,sentiment_label,sentiment_score,reasoning,risks,corr_summary
+AAPL,Information Technology,Hold,0.5,Neutral,0.0,(no reasoning returned),(no risks returned),"Avg |corr|: 0.21; Top 2: JPM:+0.31, CAT:+0.27"
+UNH,Health Care,Hold,0.5,Neutral,0.0,(no reasoning returned),(no risks returned),"Avg |corr|: 0.06; Top 2: PG:+0.10, CAT:-0.09"
+JPM,Financials,Hold,0.5,Neutral,0.0,(no reasoning returned),(no risks returned),"Avg |corr|: 0.27; Top 2: CAT:+0.60, AAPL:+0.31"
+CAT,Industrials,Hold,0.5,Neutral,0.0,(no reasoning returned),(no risks returned),"Avg |corr|: 0.25; Top 2: JPM:+0.60, AAPL:+0.27"
+PG,Consumer Staples,Hold,0.5,Neutral,0.0,(no reasoning returned),(no risks returned),"Avg |corr|: 0.12; Top 2: AAPL:+0.25, JPM:+0.12"

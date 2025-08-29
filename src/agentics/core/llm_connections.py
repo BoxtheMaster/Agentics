@@ -7,14 +7,19 @@ from openai import AsyncOpenAI
 load_dotenv()
 
 
-openai_crewai_llm = LLM(
-    model=os.getenv("OPENAI_MODEL_ID"), # call model by provider/model_name
-    temperature=0.8,
-    top_p=0.9,
-    stop=["END"],
-    api_key=os.getenv("OPENAI_API_KEY"),
-    seed=42
-)
+# openai_crewai_llm = LLM(
+#     model=os.getenv("OPENAI_MODEL_ID"), # call model by provider/model_name
+#     temperature=0.8,
+#     top_p=0.9,
+#     stop=["END"],
+#     api_key=os.getenv("OPENAI_API_KEY"),
+#     seed=42
+# )
+ollama_turbo_llm = LLM(
+    host="https://ollama.com",
+    headers={'Authorization': os.getenv("OLLAMA_TURBO_API_KEY")},
+    model='ollama/gpt-oss:20b',
+    )
 
 watsonx_crewai_llm = LLM(
     model=os.getenv("MODEL_ID"),
@@ -24,6 +29,9 @@ watsonx_crewai_llm = LLM(
     temperature=0.9,
 )
 
+gemini_llm = LLM(model=os.getenv("GEMINI_MODEL_ID"),
+                 temperature=0.7,
+)
 
 vllm_llm = AsyncOpenAI(
     api_key="EMPTY",
@@ -41,4 +49,5 @@ vllm_crewai = LLM(
     max_tokens=8000,
     temperature=0.0,
 )
+
 
