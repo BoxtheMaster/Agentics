@@ -1,0 +1,3 @@
+ticker,news,sentiment
+AAPL,"[{'title': '» 2022 » April PRACTICAL STOCK INVESTING', 'href': 'https://practicalstockinvesting.com/2022/04/', 'body': '... to what degree can we depend on reading stock prices ... In any event, AAPL gave the overnight market an excuse (not a reason) to sell off it wanted.'}]",negative
+NVDA,"[{'title': 'Nvidia stock in focus amid post-earnings dip ( NVDA ...) | Seeking Alpha', 'href': 'https://seekingalpha.com/news/4490633-nvidia-stock-focus-amid-post-earnings-dip', 'body': 'Nvidia ( NVDA ) stock draws a wide range of views from Seeking Alpha analysts after shares of the chipmaker fell following its Q2 fiscal 2026 results this week. Read more here.'}]",Neutral

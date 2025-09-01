@@ -7,7 +7,7 @@ from agentics import Agentics as AG
 from typing import Optional
 from dotenv import load_dotenv
 import os
-from agentics.core.llm_connections import  available_llms
+from agentics.core.llm_connections import  gemini_llm
 load_dotenv()
 
 ## Define output type
@@ -32,7 +32,7 @@ async def main():
     
     answers = await (AG(atype=Answer, 
                         
-                        llm=available_llms[os.getenv("SELECTED_LLM")], ##Select your LLM from list of available options
+                        llm=gemini_llm, ##Select your LLM from list of available options
                         instructions="""Provide an Answer for the following input text 
                         only if it contains an appropriate question that do not contain
                         violent or adult language """
@@ -41,6 +41,6 @@ async def main():
     print(answers.pretty_print())
     
 if __name__ == "__main__":
-    if len(available_llms)>0:
+    # if len(available_llms)>0:
         asyncio.run(main())
-    else: print("Please set API key in your .env file.")
+    #else: print("Please set API key in your .env file.")
