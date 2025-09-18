@@ -4,25 +4,7 @@
 
 Agentics is a lightweight, Python-native framework for building structured, agentic workflows over tabular or JSON-based data using Pydantic types and transduction logic. Designed to work seamlessly with large language models (LLMs), Agentics enables users to define input and output schemas as structured types and apply declarative, composable transformations—called transductions—across data collections. It supports asynchronous execution, built-in memory for structured retrieval-augmented generation (RAG), and self-transduction for tasks like data imputation and few-shot learning. With no-code and low-code interfaces, Agentics is ideal for rapidly prototyping intelligent systems that require structured reasoning, flexible memory access, and interpretable outputs.
 
-## Quick Installation
-
-You can use agentics as a library by simply importing it as follows
-
-```shell
-conda create -n agentics python=3.12
-pip install agentics-py
-```
-
-Now you can embed agentic in your python code using the followin import for AG class
-
-```python
-from agentics import Agentics as AG
-```
-
-## Developer Installation
-
-Full install is recommended if you want to contribute back to the Agentics. 
-
+## Installation
 
 * Clone the repository
 
@@ -31,18 +13,22 @@ Full install is recommended if you want to contribute back to the Agentics.
     cd agentics
   ```
 
-* Install poetry (skip if available)
+* Install uv (skip if available) 
 
   ```bash
-  curl -sSL https://install.python-poetry.org | python3 -
+  curl -LsSf https://astral.sh/uv/install.sh | sh
   ```
 
-* Clone and install agentics
+  Other installation options [here](curl -LsSf https://astral.sh/uv/install.sh | sh)
+
+* Install the dependencies
 
   ```bash
   
-  poetry install
-  source $(poetry env info --path)/bin/activate 
+  uv sync
+  # Source the environment (optional, you can skip this and prepend uv run to the later lines)
+  source .venv/bin/activate # bash/zsh 🐚
+  source .venv/bin/activate.fish # fish 🐟
   ```
 
 
@@ -62,12 +48,9 @@ Set Up LLM provider, Chose one of the following:
 - Download and install [Ollama](https://ollama.com/)
 - Download a Model. You should use a model that support reasoning and fit your GPU. So smaller are preferred. 
 ```
-ollama pull deepseek-r1:latest
+ollama pull ollama/deepseek-r1:latest
 ```
 - "OLLAMA_MODEL_ID" - ollama/gpt-oss:latest (better quality), ollama/deepseek-r1:latest (smaller)
-- "OLLAMA_TURBO_API_KEY" - (Optional if you want to use the turbo option which requires a key")
-
-
 
 #### IBM WatsonX:
 
@@ -75,16 +58,19 @@ ollama pull deepseek-r1:latest
 
 - `MODEL`  - watsonx/meta-llama/llama-3-3-70b-instruct (or alternative supporting function call)
 
-Configuration folder for memory:
 
-- `AGENT_PERSISTANCE_PATH` - Path to a folder in the local file system where memory will be stored (will create a new empty folder on first use)
+#### Google Gemini (offer free API key) 
 
-#### VLLM:
+- `WATSONX_APIKEY` - WatsonX API key
+
+- `MODEL`  - watsonx/meta-llama/llama-3-3-70b-instruct (or alternative supporting function call)
+
+
+#### VLLM (Need dedicated GPU server):
 
 - Set up your local instance of VLLM
 - `VLLM_URL` - <http://base_url:PORT/v1>
 - `VLLM_MODEL_ID` - Your model id (e.g. "hosted_vllm/meta-llama/Llama-3.3-70B-Instruct" )
-
 
 ## Test Installation
 
@@ -114,6 +100,27 @@ justification: The input text contains a question that may be related to violent
   it's more appropriate to return null for the answer.
 confidence: 1.0
 ```
+
+## Using MCP servers
+
+
+
+Point to your local MCP server code by setting 
+- MCP_SERVER_PATH = YOUR_MCP_SERVER.py 
+
+The file [src/agentics/tools/DDG_search_tool_mcp.py](src/agentics/tools/DDG_search_tool_mcp.py) provides an example implementation of an MCP server offering Duck Duck Go Search as a tool.
+
+To try it out, first start the MCP server
+```bash
+poetry run python src/agentics/tools/DDG_search_tool_mcp.py  ## point to your local file system path if doens't work
+export MCP_SERVER_PATH=src/agentics/tools/DDG_search_tool_mcp.py ## point to your local file system path if doens't work
+```
+On a different shell, test the MCP server in agentics
+```bash
+poetry run python Agentics/examples/agentics_web_search_report.py ## point to your local file system path if doens't work
+```
+
+Ask your question and it will be answered by looking up in the web. 
 
 
 ## 🎯 Coding in Agentics

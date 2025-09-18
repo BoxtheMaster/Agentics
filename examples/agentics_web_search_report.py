@@ -6,6 +6,7 @@ from agentics.core.llm_connections import available_llms
 from pydantic import BaseModel, Field
 from typing import Optional
 from dotenv import load_dotenv
+
 import asyncio
 
 load_dotenv()
@@ -16,7 +17,7 @@ server_params=StdioServerParameters(
     args=[os.getenv("MCP_SERVER_PATH")],
     env={"UV_PYTHON": "3.12", **os.environ},
 )
-
+    
 
 class SearchResult(BaseModel):
     title: Optional[str]
@@ -38,7 +39,7 @@ with MCPServerAdapter(server_params) as server_tools:
     results = asyncio.run(AG(atype=WebSearchReport,
                             tools = server_tools, 
                             max_iter=10,
-                            verbose_transduction=True,
-                            description="Answer the input question with a detailed report answering several aspects of the question ",
-                            llm=available_llms["watsonx"]) <<[input("AG>   Ask me anything and I'll search it for you\nUSER> ")])
+                            verbose_agent=True,
+                            description="Extract stock market price for the input day ",
+                            llm=available_llms["watsonx"]) <<[input("USER> ")])
     print(results.pretty_print())
