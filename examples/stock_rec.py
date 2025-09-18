@@ -15,15 +15,13 @@ class StockReco(BaseModel):
     rationale: str
     sentiment_overall: float = Field(..., description="Overall sentiment score in [-1,1]")
     price_last_close: Optional[float] = None
+    price_ret_15: Optional[float] = None
 
-# ----- Stdio MCP server params (run your MCP server script) -----
-# Ensure mcp_stock_min.py is on your PATH / cwd and GEMINI_API_KEY is exported.
 params = StdioServerParameters(
     command="python",
     args=["/Users/boxuanli/Documents/Code/agentics/mcp/stock_recommend.py"],
 )
 
-# ----- Open the MCP tools and build the Crew -----
 with MCPServerAdapter(params) as stock_tools:
     doc_agent = Agent(
         role="Stock analyst",
@@ -43,7 +41,7 @@ with MCPServerAdapter(params) as stock_tools:
             "  - max_results=8\n"
             "  - risk='medium'\n"
             "Return only the structured fields mapped to the StockReco schema.\n"
-            "Set price_last_close from price_snapshot.last_close and price_ret_20 from price_snapshot.ret_20."
+            "Set price_last_close from price_snapshot.last_close and price_ret_15 from price_snapshot.ret_15."
         ),
         expected_output="A single JSON object following the StockReco schema.",
         agent=doc_agent,

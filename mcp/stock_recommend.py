@@ -1,9 +1,7 @@
 """
-Minimal MCP Server — Stock Analysis + Recommendation (Gemini only)
-=================================================================
 
 • Single tool: `stock_recommend(ticker: str, days: int = 7, max_results: int = 8, risk: str = "medium")`
-  - Fetches 30d price data via yfinance, computes 20‑day momentum
+  - Fetches 30d price data via yfinance, computes 15‑day momentum
   - Pulls recent headlines via DuckDuckGo (DDGS)
   - Uses Gemini for headline sentiment (requires GEMINI_API_KEY)
   - Returns a BUY / HOLD / SELL **demo** recommendation with rationale + citations
@@ -18,7 +16,6 @@ Env:
 Run:
   python mcp_stock_min.py
 
-⚠️ Disclaimer: This is NOT financial advice; for educational/demo purposes only.
 """
 
 from __future__ import annotations
@@ -50,13 +47,9 @@ def _price_snapshot(ticker: str, lb_days: int = 30) -> Dict[str, Any]:
     end = dt.datetime.utcnow()
     start = end - dt.timedelta(days=lb_days + 10)
     df = yf.download(ticker, start=start.date().isoformat(), end=end.date().isoformat(), progress=False)
-    if df is None or df.empty:
-        return {"ticker": ticker.upper(), "error": "No price data"}
     close = df["Close"].dropna()
-    if len(close) < 5:
-        return {"ticker": ticker.upper(), "error": "Insufficient history"}
-    ret_20 = float(close.iloc[-1] / close.iloc[-20] - 1.0) if len(close) >= 20 else None
-    return {"ticker": ticker.upper(), "last_close": float(close.iloc[-1]), "ret_20": ret_20}
+    ret_15 = float(close.iloc[-1] / close.iloc[-15] - 1.0) if len(close) >= 15 else None
+    return {"ticker": ticker.upper(), "last_close": float(close.iloc[-1]), "ret_15": ret_15}
 
 
 def _ddg_news(query: str, days: int = 7, max_results: int = 8) -> List[Dict[str, str]]:
@@ -82,20 +75,20 @@ def _company_name(ticker: str) -> str:
         return ticker
 
 
-def _combine(overall: float, ret_20: Optional[float], risk: str = "medium") -> Dict[str, str]:
-    risk_mult = {"low": 0.5, "medium": 1.0, "high": 1.5}.get(risk, 1.0)
-    m = float(ret_20) if ret_20 is not None else 0.0
+def _combine(overall: float, ret_15: Optional[float], risk: str = "medium") -> Dict[str, str]:
+    risk_mult = {"low": 0.5, "medium": 1.0, "high": 1.5}.get(risk)
+    m = float(ret_15) if ret_15 is not None else 0.0
     z = overall + 0.8 * np.tanh(5 * m)
     thr_buy, thr_sell = 0.6 / risk_mult, -0.6 / risk_mult
     if z >= thr_buy:
-        act = "BUY (demo)"
-        why = f"Sentiment {overall:+.2f} plus 20d momentum {m:+.2%} gives composite {z:+.2f}."
+        act = "BUY"
+        why = f"Sentiment {overall:+.2f} plus 15d momentum {m:+.2%} gives composite {z:+.2f}."
     elif z <= thr_sell:
-        act = "SELL/AVOID (demo)"
-        why = f"Negative: sentiment {overall:+.2f}, 20d momentum {m:+.2%}, composite {z:+.2f}."
+        act = "SELL/AVOID"
+        why = f"Negative: sentiment {overall:+.2f}, 15d momentum {m:+.2%}, composite {z:+.2f}."
     else:
-        act = "HOLD/WAIT (demo)"
-        why = f"Mixed: sentiment {overall:+.2f}, 20d momentum {m:+.2%}, composite {z:+.2f}."
+        act = "HOLD/WAIT"
+        why = f"Mixed: sentiment {overall:+.2f}, 15d momentum {m:+.2%}, composite {z:+.2f}."
     return {"action": act, "rationale": why}
 
 
@@ -138,7 +131,7 @@ def stock_recommend(ticker: str, days: int = 7, max_results: int = 8, risk: str 
 
     senti = _gemini_sentiment(items)
     overall = float(senti.get("overall_score", 0.0))
-    rec = _combine(overall, snap.get("ret_20") if isinstance(snap, dict) else None, risk=risk)
+    rec = _combine(overall, snap.get("ret_15") if isinstance(snap, dict) else None, risk=risk)
 
     return {
         "ticker": ticker,
@@ -148,7 +141,6 @@ def stock_recommend(ticker: str, days: int = 7, max_results: int = 8, risk: str 
         "recommendation": rec["action"],
         "rationale": rec["rationale"],
         "citations": [{"title": x.get("title"), "url": x.get("url")} for x in senti.get("per_item", [])[:5]],
-        "disclaimer": "Educational demo, not financial advice.",
     }
 
 
