@@ -1,47 +1,25 @@
 """
-
-• Single tool: `stock_recommend(ticker: str, days: int = 7, max_results: int = 8, risk: str = "medium")`
+Tool: `stock_recommend(ticker: str, days: int = 7, max_results: int = 8, risk: str = "medium")`
   - Fetches 30d price data via yfinance, computes 15‑day momentum
   - Pulls recent headlines via DuckDuckGo (DDGS)
   - Uses Gemini for headline sentiment (requires GEMINI_API_KEY)
   - Returns a BUY / HOLD / SELL **demo** recommendation with rationale + citations
-
-Install:
-  pip install mcp yfinance duckduckgo-search google-generativeai numpy pandas
-
-Env:
-  export GEMINI_API_KEY="..."
-  export GEMINI_MODEL="gemini-1.5-flash"  # or -pro
-
-Run:
-  python mcp_stock_min.py
-
 """
 
-from __future__ import annotations
 import datetime as dt
 import json
 import os
 from typing import Any, Dict, List, Optional
-
 from mcp.server.fastmcp import FastMCP
-from ddgs import DDGS  # your file used this name
-
-
-# --- Price data ---
+from ddgs import DDGS  
 import numpy as np
 import pandas as pd
 import yfinance as yf
 
-# --- Gemini sentiment ---
 import google.generativeai as genai
 
 
-mcp = FastMCP("StockMini")
-
-# -----------------------------
-# Helpers
-# -----------------------------
+mcp = FastMCP("StockRec")
 
 def _price_snapshot(ticker: str, lb_days: int = 30) -> Dict[str, Any]:
     end = dt.datetime.utcnow()
@@ -65,15 +43,6 @@ def _ddg_news(query: str, days: int = 7, max_results: int = 8) -> List[Dict[str,
                 "snippet": r.get("body") or r.get("excerpt") or "",
             })
     return results
-
-
-def _company_name(ticker: str) -> str:
-    try:
-        info = yf.Ticker(ticker).get_info()
-        return info.get("shortName") or info.get("longName") or ticker
-    except Exception:
-        return ticker
-
 
 def _combine(overall: float, ret_15: Optional[float], risk: str = "medium") -> Dict[str, str]:
     risk_mult = {"low": 0.5, "medium": 1.0, "high": 1.5}.get(risk)
@@ -108,13 +77,9 @@ def _gemini_sentiment(items: List[Dict[str, str]]) -> Dict[str, Any]:
     data = json.loads(text)
     return data
 
-
-# -----------------------------
-# Minimal one‑shot tool
-# -----------------------------
 @mcp.tool()
 def stock_recommend(ticker: str, days: int = 7, max_results: int = 8, risk: str = "medium") -> Dict[str, Any]:
-    """Return a minimal stock analysis + demo recommendation.
+    """Return a stock analysis + demo recommendation.
     Args:
       ticker: e.g., AAPL
       days: news window (1–30)
@@ -122,10 +87,9 @@ def stock_recommend(ticker: str, days: int = 7, max_results: int = 8, risk: str 
       risk: low|medium|high to adjust thresholds
     """
     ticker = ticker.upper().strip()
-    name = _company_name(ticker)
     snap = _price_snapshot(ticker, 30)
 
-    query = f"{name} ({ticker}) stock news"
+    query = f"{ticker} stock news"
     items = _ddg_news(query, days=days, max_results=max_results)
 
     senti = _gemini_sentiment(items)
@@ -134,7 +98,6 @@ def stock_recommend(ticker: str, days: int = 7, max_results: int = 8, risk: str 
 
     return {
         "ticker": ticker,
-        "company": name,
         "price_snapshot": snap,
         "sentiment_overall": overall,
         "recommendation": rec["action"],
