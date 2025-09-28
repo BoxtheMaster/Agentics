@@ -36,43 +36,107 @@ load_dotenv()
 class NewsSentimentReport(BaseModel):
     ticker: Optional[str]=None
     relevant_news: Optional[list[str]]=None
+    price_close: Optional[float]=None
+    price_open: Optional[float]=None
+    price_prev_close: Optional[float]=None
+    year__high: Optional[float]=None
+    year_low: Optional[float]=None
+    Volume: Optional[float]=None
     sentiment_score: Optional[float]=0
     sentiment_report_summary: Optional[str]=None
+    investment_recommendation: Optional[str]=None
 
 
 
 
 import streamlit as st
 st.header("Agentic MCP demo")
-mcp_map={"stock_news": os.getenv("NEWS_MCP_TOOL_EXAMPLE_PATH"),
-         "stock_price": os.getenv("STOCK_MCP_TOOL_EXAMPLE_PATH")}
+# mcp_map={"stock_news": os.getenv("NEWS_MCP_TOOL_EXAMPLE_PATH"),
+#          "stock_price": os.getenv("STOCK_MCP_TOOL_EXAMPLE_PATH")}
 question=st.text_input("Ask a question")
 select_tools=st.multiselect("Select your tool", options=['stock_news','stock_price'])
 if question:
-    server_params = StdioServerParameters(
+    news_tool = StdioServerParameters(
         command="python3",
-        args=[mcp_map[x] for x in select_tools],
+        args=[os.getenv("NEWS_MCP_TOOL_EXAMPLE_PATH")],
         env={"UV_PYTHON": "3.12", **os.environ},
     )
-    with MCPServerAdapter(server_params) as server_tools:
-        print(
-            f"Available tools from Stdio MCP server: {[tool.name for tool in server_tools]}"
-        )
 
-        results = asyncio.run(
-            AG(
-                atype=NewsSentimentReport,
-                tools=server_tools,
-                max_iter=10,
-                verbose_agent=True,
-                reasoning=True,
-                # description="Extract stock market price for the input day ",
-                llm=AG.get_llm_provider("gemini"),
+    price_tool= StdioServerParameters(
+        command="python3",
+        args=[os.getenv("STOCK_MCP_TOOL_EXAMPLE_PATH")],
+        env={"UV_PYTHON": "3.12", **os.environ},
+    )
+    if select_tools==['stock_news']:
+        with MCPServerAdapter(news_tool) as server_tools:
+            print(
+                f"Available tools from Stdio MCP server: {[tool.name for tool in server_tools]}"
             )
-            << [question]
-        )
-    
+
+            results = asyncio.run(
+                AG(
+                    atype=NewsSentimentReport,
+                    tools=server_tools,
+                    max_iter=10,
+                    verbose_agent=True,
+                    reasoning=True,
+                    #description="Extract stock market news for the input day",
+                    llm=AG.get_llm_provider("gemini"),
+                )
+                << [question]
+            )
         st.write(results[0])
+    if select_tools==['stock_price']:
+        with MCPServerAdapter(price_tool) as server_tools:
+            print(
+                f"Available tools from Stdio MCP server: {[tool.name for tool in server_tools]}"
+            )
+
+            results = asyncio.run(
+                AG(
+                    atype=NewsSentimentReport,
+                    tools=server_tools,
+                    max_iter=10,
+                    verbose_agent=True,
+                    reasoning=True,
+                    description="Extract stock market price, volume, day high, low for the input day and give investment decision",
+                    llm=AG.get_llm_provider("gemini"),
+                )
+                << [question]
+            )
+        st.write(results[0])
+    if select_tools==['stock_news','stock_price'] or select_tools==['stock_price', 'stock_news']:
+        with (MCPServerAdapter(price_tool) as price_tools,
+             MCPServerAdapter(news_tool) as news_tools,
+             ):
+            server_tools=news_tools+price_tools
+            
+            print(
+            f"Available tools from Stdio MCP server: {[tool.name for tool in price_tools]}"
+            )
+            print(
+        f"Available tools from Stdio MCP server: {[tool.name for tool in news_tools]}"
+            )
+
+            results = asyncio.run(
+                AG(
+                    atype=NewsSentimentReport,
+                    role="Stock adivse Agent",
+                    goal="Give stock recommendation to user using the available MCP tool.",
+                    tools=server_tools,
+                    max_iter=10,
+                    verbose_agent=True,
+                    reasoning=True,
+                    description="Extract stock market news and do sentiment analysis, and also consider price and volume for the input day and give investment recommendation",
+                    llm=AG.get_llm_provider("gemini"),
+                )
+                << [question]
+            )
+        st.write(results[0])
+        
+    
         #print(results.pretty_print())
 
 
+
+ 
