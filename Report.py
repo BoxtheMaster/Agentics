@@ -37,20 +37,15 @@ class MarketRow(BaseModel):
     # Real estate derived index
     us_real_house_price_idx: Optional[float] = Field(None, alias="USRealHousePriceIdx")
 
-    # Simple derived returns/logs (if your CSV has them)
     spx_ret: Optional[float] = Field(None, alias="SPXRet")
     sx5e_ret: Optional[float] = Field(None, alias="SX5Ret")
     btc_ret: Optional[float] = Field(None, alias="BTCRet")
     logspx: Optional[float] = Field(None, alias="LOGSPX")
     logsx5: Optional[float] = Field(None, alias="LOGSX5")
 
-    # Aggregated Reddit headlines (single column that stores a list of strings)
     reddit_headlines: Optional[List[str]] = Field(None, alias="RedditHeadlines")
 
   
-    
-
-# ---------- Macroeconomic dataset (macro_factors_no_overlap.csv) ----------
 class MacroRow(BaseModel):
     """
     One daily observation on macro factors (no overlaps with MarketRow).
