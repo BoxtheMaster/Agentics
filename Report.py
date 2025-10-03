@@ -4,7 +4,7 @@ from datetime import date
 from typing import List, Optional
 
 import pandas as pd
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from agentics import AG
 
@@ -113,25 +113,16 @@ class MacroRow(BaseModel):
 # ---------- Helpers to load CSVs into typed lists ----------
 def load_market_csv(path: str) -> list[MarketRow]:
     df = pd.read_csv(path)
-    # normalize Date column name/case just in case
-    if "date" in df.columns and "Date" not in df.columns:
-        df = df.rename(columns={"date": "Date"})
     return [MarketRow(**row.to_dict()) for _, row in df.iterrows()]
 
 def load_macro_csv(path: str) -> list[MacroRow]:
     df = pd.read_csv(path)
-    if "date" in df.columns and "Date" not in df.columns:
-        df = df.rename(columns={"date": "Date"})
     return [MacroRow(**row.to_dict()) for _, row in df.iterrows()]
 
 
-
-
-
-
 async def main(
-    market_csv: str = "market_with_news_agg.csv",
-    macro_csv: str = "macro_factors_no_overlap.csv",
+    market_csv: str = "data/market_with_news_agg.csv",
+    macro_csv: str = "data/macro_factors.csv",
 ):
     # Load typed rows
     market_rows = load_market_csv(market_csv)
