@@ -9,103 +9,95 @@ from pydantic import BaseModel, Field
 from agentics import AG
 
 
+from pydantic import BaseModel, Field
+from datetime import date
+from typing import Optional, List
+
 class MarketRow(BaseModel):
-    """
-    One daily observation of market features and aggregated news.
-    """
+    """Daily financial market features and aggregated news headlines."""
 
-    Date: Optional[date] = Field(alias="Date")
-
-    # Prices / levels
-    spx: Optional[float] = Field(None, alias="SPX")
-    sx5e: Optional[float] = Field(None, alias="SX5E")
-    btcusd: Optional[float] = Field(None, alias="BTCUSD")
-    vix: Optional[float] = Field(None, alias="VIX")            # CBOE VIX
-    v2x: Optional[float] = Field(None, alias="V2X")            # EURO STOXX 50 vol (if present)
-    gsg: Optional[float] = Field(None, alias="GSG")            # iShares S&P GSCI ETF proxy
-    usd_index: Optional[float] = Field(None, alias="DTWEXBGS") # Broad USD index
-    brent: Optional[float] = Field(None, alias="DCOILBRENTEU")
-    gold_usd: Optional[float] = Field(None, alias="GOLDAMUSD") # FRED fix if present
-    gld: Optional[float] = Field(None, alias="GLD")            # ETF proxy fallback
-
-    # Rates & curves 
-    fedfunds: Optional[float] = Field(None, alias="FEDFUNDS")
-    dgs2: Optional[float] = Field(None, alias="DGS2")
-    dgs10: Optional[float] = Field(None, alias="DGS10")
-    t10y2y_us: Optional[float] = Field(None, alias="T10Y2Y_US")
-
-    # Real estate derived index
-    us_real_house_price_idx: Optional[float] = Field(None, alias="USRealHousePriceIdx")
-
-    spx_ret: Optional[float] = Field(None, alias="SPXRet")
-    sx5e_ret: Optional[float] = Field(None, alias="SX5Ret")
-    btc_ret: Optional[float] = Field(None, alias="BTCRet")
-    logspx: Optional[float] = Field(None, alias="LOGSPX")
-    logsx5: Optional[float] = Field(None, alias="LOGSX5")
-
-    reddit_headlines: Optional[List[str]] = Field(None, alias="RedditHeadlines")
+    Date: Optional[date] = Field(
+        None, description="Trading day (calendar date)."
+    )
+    spx: Optional[float] = Field(
+        None, description="S&P 500 Index (^GSPC) daily close price."
+    )
+    sx5e: Optional[float] = Field(
+        None, description="Euro Stoxx 50 Index (^STOXX50E) daily close price."
+    )
+    btcusd: Optional[float] = Field(
+        None, description="Bitcoin (BTC-USD) daily closing price in U.S. dollars."
+    )
+    vix: Optional[float] = Field(
+        None, description="CBOE Volatility Index (^VIX), implied equity market volatility."
+    )
+    gsg: Optional[float] = Field(
+        None, description="S&P GSCI Commodity Index ETF (GSG), proxy for global commodity prices."
+    )
+    dgs2: Optional[float] = Field(
+        None, description="U.S. Treasury 2-Year yield (percent)."
+    )
+    dgs10: Optional[float] = Field(
+        None, description="U.S. Treasury 10-Year yield (percent)."
+    )
+    usd_index: Optional[float] = Field(
+        None, description="Broad U.S. Dollar Index (DTWEXBGS), trade-weighted value of USD."
+    )
+    brent: Optional[float] = Field(
+        None, description="Brent crude oil spot price (USD per barrel)."
+    )
+    gld: Optional[float] = Field(
+        None, description="SPDR Gold Shares ETF (GLD) close price, proxy for gold."
+    )
+    us10y2y: Optional[float] = Field(
+        None, description="U.S. yield curve slope, 10-year minus 2-year Treasury yield."
+    )
+    headlines: Optional[List[str]] = Field(
+        None, description="List of aggregated Reddit news headlines for the day."
+    )
 
   
 class MacroRow(BaseModel):
-    """
-    One daily observation on macro factors (no overlaps with MarketRow).
-    Keep everything Optional so the model remains tolerant to sparse series.
-    """
+    """Daily macroeconomic and fundamental indicators (forward-filled)."""
 
-    Date: Optional[date] = Field(alias="Date")
+    date: Optional[date] = Field(
+        None, description="Reference date for macroeconomic indicators."
+    )
+    fedfunds: Optional[float] = Field(
+        None, description="Federal Funds Effective Rate (short-term U.S. policy rate)."
+    )
+    tb3ms: Optional[float] = Field(
+        None, description="3-Month Treasury Bill yield (percent)."
+    )
+    t10y3m: Optional[float] = Field(
+        None, description="Spread between 10-year and 3-month Treasury yields."
+    )
+    cpiaucsl: Optional[float] = Field(
+        None, description="Consumer Price Index (CPI), all items (headline inflation)."
+    )
+    cpilfesl: Optional[float] = Field(
+        None, description="Consumer Price Index, core (excluding food and energy)."
+    )
+    pcepi: Optional[float] = Field(
+        None, description="Personal Consumption Expenditures Price Index (headline PCE)."
+    )
+    pcepilfe: Optional[float] = Field(
+        None, description="Core PCE Price Index (excluding food and energy)."
+    )
+    unrate: Optional[float] = Field(
+        None, description="U.S. unemployment rate (percent of labor force)."
+    )
+    payems: Optional[float] = Field(
+        None, description="Nonfarm payroll employment, total number of jobs (thousands)."
+    )
+    indpro: Optional[float] = Field(
+        None, description="Industrial Production Index, measures manufacturing output."
+    )
+    rsafs: Optional[float] = Field(
+        None, description="Retail Sales Index, measure of consumer spending activity."
+    )
 
-    # Policy / curve (non-overlapping ones only; FEDFUNDS, DGS2, DGS10 removed by design)
-    tbill_3m: Optional[float] = Field(None, alias="TB3MS")
-    t10y3m_spread: Optional[float] = Field(None, alias="T10Y3M")
-
-    # Inflation indices & core
-    cpi_all: Optional[float] = Field(None, alias="CPIAUCSL")
-    cpi_core: Optional[float] = Field(None, alias="CPILFESL")
-    pce: Optional[float] = Field(None, alias="PCEPI")
-    pce_core: Optional[float] = Field(None, alias="PCEPILFE")
-
-    # Derived inflation changes (if present)
-    cpi_yoy: Optional[float] = Field(None, alias="CPIAUCSL_YoY")
-    cpi_mom: Optional[float] = Field(None, alias="CPIAUCSL_MoM")
-    cpi_core_yoy: Optional[float] = Field(None, alias="CPILFESL_YoY")
-    cpi_core_mom: Optional[float] = Field(None, alias="CPILFESL_MoM")
-    pce_yoy: Optional[float] = Field(None, alias="PCEPI_YoY")
-    pce_mom: Optional[float] = Field(None, alias="PCEPI_MoM")
-    pce_core_yoy: Optional[float] = Field(None, alias="PCEPILFE_YoY")
-    pce_core_mom: Optional[float] = Field(None, alias="PCEPILFE_MoM")
-
-    # Inflation expectations
-    breakeven_10y: Optional[float] = Field(None, alias="T10YIE")
-    breakeven_5y: Optional[float] = Field(None, alias="T5YIE")
-    fivey_inf_fwd: Optional[float] = Field(None, alias="T5YIFR")
-
-    # Labor / activity
-    unemployment_rate: Optional[float] = Field(None, alias="UNRATE")
-    payrolls_total: Optional[float] = Field(None, alias="PAYEMS")
-    jobless_claims: Optional[float] = Field(None, alias="ICSA")
-    industrial_production: Optional[float] = Field(None, alias="INDPRO")
-    industrial_prod_yoy: Optional[float] = Field(None, alias="INDPRO_YoY")
-    industrial_prod_mom: Optional[float] = Field(None, alias="INDPRO_MoM")
-    retail_sales: Optional[float] = Field(None, alias="RSAFS")
-    retail_sales_mom: Optional[float] = Field(None, alias="RSAFS_MoM")
-
-    # Surveys (modern PMI/UMich might appear if you swapped series)
-    consumer_sentiment: Optional[float] = Field(None, alias="UMCSENT")
-    manufacturing_pmi: Optional[float] = Field(None, alias="MAN_PMI")   # if you mapped modern PMI
-    services_pmi: Optional[float] = Field(None, alias="SERV_PMI")       # if you mapped modern PMI
-
-    # Housing (price index overlap removed already in your pipeline)
-    housing_starts: Optional[float] = Field(None, alias="HOUST")
-    building_permits: Optional[float] = Field(None, alias="PERMIT")
-
-    # Credit / financial conditions
-    nfc_index: Optional[float] = Field(None, alias="NFCI")
-    ig_oas: Optional[float] = Field(None, alias="BAMLC0A0CM")
-    hy_oas: Optional[float] = Field(None, alias="BAMLH0A0HYM2")
-
-    # FX / commodities: USD, Brent, Gold were intentionally kept in *market* to avoid overlap
    
-# ---------- Helpers to load CSVs into typed lists ----------
 def load_market_csv(path: str) -> list[MarketRow]:
     df = pd.read_csv(path)
     return [MarketRow(**row.to_dict()) for _, row in df.iterrows()]
@@ -115,12 +107,10 @@ def load_macro_csv(path: str) -> list[MacroRow]:
     return [MacroRow(**row.to_dict()) for _, row in df.iterrows()]
 
 
-async def main(
-    market_csv: str = "data/market_with_news_agg.csv",
-    macro_csv: str = "data/macro_factors.csv",
-):
-    # Load typed rows
-    market_rows = load_market_csv(market_csv)
-    macro_rows  = load_macro_csv(macro_csv)
-    market_ag = AG(atype=MarketRow, states=market_rows)
-    macro_ag  = AG(atype=MacroRow,  states=macro_rows)
+market_csv: str = "data/market_with_news_agg.csv",
+macro_csv: str = "data/macro_factors.csv",
+
+market_rows = load_market_csv(market_csv)
+macro_rows  = load_macro_csv(macro_csv)
+market_ag = AG(atype=MarketRow, states=market_rows)
+macro_ag  = AG(atype=MacroRow,  states=macro_rows)
